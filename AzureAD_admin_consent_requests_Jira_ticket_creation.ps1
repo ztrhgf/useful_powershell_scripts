@@ -1,4 +1,6 @@
 ﻿<#
+ More info at https://doitpsway.com/automatic-jira-ticket-creation-for-azure-application-admin-consent-requests
+
  Script should be periodically run
  Script checks admin consent requests, if some new (unprocessed) is found, new Jira ticket will be created
  Processed requests are saved into XML file
@@ -15,8 +17,8 @@ Start-Transcript (Join-Path $PSScriptRoot ((Split-Path $PSCommandPath -Leaf) + "
 
 $ErrorActionPreference = "Stop"
 
-Import-Module JiraPS
-Import-Module AzureADStuff
+Import-Module JiraPS # Install-Module JiraPS
+Import-Module AzureADStuff # Install-Module AzureADStuff
 
 # connect to Jira
 # export Jira credentials (username + API token) to XML file
