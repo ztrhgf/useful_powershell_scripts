@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.0
+.VERSION 1.2
 
 .GUID 0f142d4f-192e-4121-b3fd-010611e4c306
 
@@ -26,6 +26,8 @@
 
 .RELEASENOTES
 Version 1.0:  enhanced & fixed version based on original 5.6 version of Get-AutopilotDiagnostics.ps1 from Michael Niehaus)
+Version 1.1:  fixed path to log files
+Version 1.2:  fixed Intune objects paging in GetIntuneObjects function (thanks JSiess)
 
 #>
 
@@ -38,6 +40,8 @@ Displays Windows Autopilot diagnostics information from the current PC or a capt
 This script displays diagnostics information from the current PC or a captured set of logs. This includes details about the Autopilot profile settings; policies, apps, certificate profiles, scripts, remediation scripts etc. being tracked via the Enrollment Status Page; and additional information.
 
 This should work with Windows 10 1903 and later (earlier versions have not been validated). This script will not work on ARM64 systems due to registry redirection from the use of x86 PowerShell.exe.
+
+This script is enhanced version of the great, but no longer maintained Get-AutopilotDiagnostics.ps1 so kudos to its author Michael Niehaus.
 
 .PARAMETER Online
 Look up the actual policy, app and script names via the Intune Graph API
@@ -73,7 +77,7 @@ Shows the policy details as recorded in the NodeCache registry keys, in the orde
 .\Get-AutopilotDiagnostics.ps1 -ShowPolicies
 
 .NOTES
-This script is enhanced & fixed version of the great but no longer maintained Get-AutopilotDiagnostics.ps1 so kudos to its author Michael Niehaus.
+This script is enhanced & fixed version of the great, but no longer maintained Get-AutopilotDiagnostics.ps1 so kudos to its author Michael Niehaus.
 
 #>
 
@@ -168,11 +172,11 @@ Begin {
         $hash = (Get-WmiObject -Namespace root/cimv2/mdm/dmmap -Class MDM_DevDetail_Ext01 -Filter "InstanceID='Ext' AND ParentID='./DevDetail'").DeviceHardwareData
 
         # apps
-        $appActionProcessorLogFile = "$($env:ProgramData)\Microsoft\Windows\ESP\Logs\AppActionProcessor.log"
+        $appActionProcessorLogFile = "$($env:ProgramData)\Microsoft\IntuneManagementExtension\Logs\AppActionProcessor.log"
         # remediation scripts
-        $healthScriptsLogFile = "$($env:ProgramData)\Microsoft\Windows\ESP\Logs\HealthScripts.log"
+        $healthScriptsLogFile = "$($env:ProgramData)\Microsoft\IntuneManagementExtension\Logs\HealthScripts.log"
         # scripts
-        $agentExecutorLogFile = "$($env:ProgramData)\Microsoft\Windows\ESP\Logs\AgentExecutor.log"
+        $agentExecutorLogFile = "$($env:ProgramData)\Microsoft\IntuneManagementExtension\Logs\AgentExecutor.log"
     }
 
     # Configure other constants
@@ -696,7 +700,7 @@ Process {
                 $objectsNextLink = $response."@odata.nextLink"
 
                 while ($objectsNextLink -ne $null) {
-                    $response = (Invoke-MSGraphRequest -Url $devicesNextLink -HttpMethod Get)
+                    $response = (Invoke-MSGraphRequest -Url $objectsNextLink -HttpMethod Get)
                     $objectsNextLink = $response."@odata.nextLink"
                     $objects += $response.value
                 }
